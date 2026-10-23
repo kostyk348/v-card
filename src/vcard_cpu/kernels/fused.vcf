@@ -1,0 +1,35 @@
+BEGIN:VCARD
+VERSION:4.0
+UID:isa-op-fused-pipeline-x4
+FN:vFUSED_MAT_RELU_RSQRT_256
+CATEGORIES:SIMD,AVX2,FMA,FusedKernel
+X-MICRO-OP-C:
+#include <immintrin.h>
+#include <math.h>
+
+void execute_kernel(const float* a, const float* b, const float* c, const float* d, float* out, int n) {
+    int i = 0;
+    __m256 zero = _mm256_setzero_ps();
+    __m256 eps  = _mm256_set1_ps(1e-5f);
+    __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
+
+    for (; i <= n - 8; i += 8) {
+        __m256 va = _mm256_loadu_ps(&a[i]);
+        __m256 vb = _mm256_loadu_ps(&b[i]);
+        __m256 vc = _mm256_loadu_ps(&c[i]);
+        __m256 vd = _mm256_loadu_ps(&d[i]);
+
+        __m256 num = _mm256_max_ps(zero, _mm256_fmadd_ps(va, vb, vc));
+        __m256 den = _mm256_add_ps(_mm256_and_ps(vd, sign_mask), eps);
+        __m256 res = _mm256_mul_ps(num, _mm256_rsqrt_ps(den));
+
+        _mm256_storeu_ps(&out[i], res);
+    }
+    for (; i < n; i++) {
+        float num = a[i] * b[i] + c[i];
+        num = num > 0.0f ? num : 0.0f;
+        float den = fabsf(d[i]) + 1e-5f;
+        out[i] = num * (1.0f / sqrtf(den));
+    }
+}
+END:VCARD

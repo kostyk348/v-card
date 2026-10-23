@@ -1,0 +1,39 @@
+BEGIN:VCARD
+VERSION:4.0
+UID:node-mult
+FN:Multiply inputs
+CATEGORIES:Op
+X-OP:MUL
+RELATED;TYPE=input:in_x,in_y
+RELATED;TYPE=output:node-sub
+END:VCARD
+
+BEGIN:VCARD
+VERSION:4.0
+UID:node-sub
+FN:Subtract bias
+CATEGORIES:Op
+X-OP:SUB
+RELATED;TYPE=input:node-mult,in_z
+RELATED;TYPE=output:node-abs
+END:VCARD
+
+BEGIN:VCARD
+VERSION:4.0
+UID:node-abs
+FN:Absolute value
+CATEGORIES:Op
+X-OP:ABS
+RELATED;TYPE=input:node-sub
+RELATED;TYPE=output:node-clamp
+END:VCARD
+
+BEGIN:VCARD
+VERSION:4.0
+UID:node-clamp
+FN:Clamp upper limit
+CATEGORIES:Op
+X-OP:MIN
+RELATED;TYPE=input:node-abs,in_limit
+RELATED;TYPE=output:out_final
+END:VCARD

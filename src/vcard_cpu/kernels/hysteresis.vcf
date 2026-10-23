@@ -1,0 +1,27 @@
+BEGIN:VCARD
+VERSION:4.0
+UID:isa-branchless-hysteresis
+FN:vBRANCHLESS_HYSTERESIS_INTERLOCK
+CATEGORIES:Safety,Relay,SIMD
+RELATED;TYPE=input:signal,prev_state
+RELATED;TYPE=output:out
+X-PARAMS:high_th:float,low_th:float
+X-KERNEL-BODY:
+// Branchless Schmitt trigger: trip = (signal > high) | ((signal > low) & prev)
+__m256 v_high = _mm256_set1_ps(high_th);
+__m256 v_low  = _mm256_set1_ps(low_th);
+__m256 v_one  = _mm256_set1_ps(1.0f);
+
+for (int i = 0; i <= n - 8; i += 8) {
+    __m256 sig = _mm256_loadu_ps(&in__signal[i]);
+    __m256 st  = _mm256_loadu_ps(&in__prev_state[i]);
+
+    __m256 mask_high = _mm256_cmp_ps(sig, v_high, _CMP_GT_OQ);
+    __m256 mask_low  = _mm256_cmp_ps(sig, v_low, _CMP_GT_OQ);
+
+    __m256 hold = _mm256_and_ps(mask_low, st);
+    __m256 trip = _mm256_or_ps(mask_high, hold);
+    __m256 res  = _mm256_and_ps(trip, v_one);
+    _mm256_storeu_ps(&out__out[i], res);
+}
+END:VCARD

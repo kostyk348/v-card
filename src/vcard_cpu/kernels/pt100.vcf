@@ -1,0 +1,23 @@
+BEGIN:VCARD
+VERSION:4.0
+UID:isa-pt100-adc-calibrate
+FN:vMODBUS_PT100_CONVERT
+CATEGORIES:Industrial,Sensors,SIMD
+RELATED;TYPE=input:adc
+RELATED;TYPE=output:out
+X-KERNEL-BODY:
+// Polynomial ADC -> resistance -> temperature conversion for a Pt100 probe
+// T = (ADC * 0.005) * (1.0 + ADC * 0.000001) - 50.0
+__m256 v_scale = _mm256_set1_ps(0.005f);
+__m256 v_poly  = _mm256_set1_ps(0.000001f);
+__m256 v_one   = _mm256_set1_ps(1.0f);
+__m256 v_bias  = _mm256_set1_ps(50.0f);
+
+for (int i = 0; i <= n - 8; i += 8) {
+    __m256 raw = _mm256_loadu_ps(&in__adc[i]);
+    __m256 base = _mm256_mul_ps(raw, v_scale);
+    __m256 corr = _mm256_fmadd_ps(raw, v_poly, v_one);
+    __m256 temp = _mm256_fmsub_ps(base, corr, v_bias);
+    _mm256_storeu_ps(&out__out[i], temp);
+}
+END:VCARD

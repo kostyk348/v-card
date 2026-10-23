@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vcard-cpu"
+version = "0.1.0"
+description = "vCard 4.0 as an executable compute-kernel container: vcf -> AVX2 JIT"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "vcard-cpu contributors" }]
+keywords = ["jit", "simd", "avx2", "vcard", "dsl", "compiler", "industrial"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: C",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Compilers",
+]
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+vcard-cpu = "vcard_cpu.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vcard_cpu = ["kernels/*.vcf"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
