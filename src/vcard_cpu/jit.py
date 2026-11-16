@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import ctypes
+import errno
 import hashlib
 import os
+import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -24,6 +26,21 @@ class JITError(RuntimeError):
 
 def _sanitize(name: str) -> str:
     return "".join(ch if ch.isalnum() else "_" for ch in name).strip("_") or "x"
+
+
+def _install(src: Path, dst: Path) -> None:
+    """Атомарно положить собранный .so в кэш.
+
+    ``os.replace`` падает с EXDEV, когда временный каталог лежит на другой
+    файловой системе (tmpfs в CI, смонтированный кэш). В этом случае переносим
+    копированием — атомарность в кэше не критична.
+    """
+    try:
+        os.replace(src, dst)
+    except OSError as exc:
+        if exc.errno != errno.EXDEV:
+            raise
+        shutil.move(str(src), str(dst))
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +233,7 @@ class VcfJit:
                     capture_output=True, text=True)
                 if proc.returncode != 0:
                     raise JITError(f"gcc failed:\n{proc.stderr}\n--- generated C ---\n{self.src}")
-                os.replace(so_file, self.lib_path)
+                _install(so_file, self.lib_path)
 
         self._lib = ctypes.CDLL(str(self.lib_path))
         self._fn = self._lib.execute_kernel
