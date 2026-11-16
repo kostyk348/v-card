@@ -17,7 +17,7 @@
 Yes, *that* vCard — the contacts file format. Your SIMD kernels deserve
 better than ad-hoc YAML.
 
-[![CI](https://github.com/example/vcard-cpu/actions/workflows/ci.yml/badge.svg)](https://github.com/example/vcard-cpu/actions)
+[![CI](https://github.com/kostyk348/v-card/actions/workflows/ci.yml/badge.svg)](https://github.com/kostyk348/v-card/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-green)]()
 
@@ -139,7 +139,7 @@ speed — it's that **a vCard became a compiled SIMD kernel in under 2 ms**.
 ## Install
 
 ```bash
-git clone https://github.com/example/vcard-cpu
+git clone https://github.com/kostyk348/v-card
 cd vcard-cpu
 pip install -e .
 vcard-cpu --help
